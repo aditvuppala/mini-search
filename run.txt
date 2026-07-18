@@ -1,0 +1,5 @@
+First-time setup or after adding brand new files:
+cmake -S . -B build
+
+Everyday compilation and running loop:
+cmake --build build && ./build/mini_search
