@@ -1,0 +1,11 @@
+# Ignore local compilation build directories
+build/
+
+# Ignore system junk files
+.DS_Store
+Thumbs.db
+
+# Ignore future Python virtual environments
+venv/
+__pycache__/
+*.pyc
