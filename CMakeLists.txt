@@ -1,16 +1,23 @@
 cmake_minimum_required(VERSION 3.15)
-project(MiniSearch LANGUAGES CXX)
+project(MiniSearch CXX)
 
-# Enforce the C++17 standard
-set(CMAKE_CXX_STANDARD 17)
+# Force modern C++ standards
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Apply strict compiler flags for maximum speed and safety
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -Wall -Wextra -pedantic -Wconversion")
+# 1. Automatically collect ALL .cpp source files inside the src/ folder
+file(GLOB_RECURSE SOURCES "src/*.cpp")
+
+# 2. Define the executable using the dynamic file list
+add_executable(mini_search ${SOURCES})
+
+# 3. Add strict compiler flags to catch bugs early (perfect for debugging)
+if(MSVC)
+    target_compile_options(mini_search PRIVATE /W4)
+else()
+    target_compile_options(mini_search PRIVATE -Wall -Wextra -Wpedantic -Werror)
 endif()
 
-# Tell CMake to compile our initial main file
-add_executable(mini_search 
-    src/main.cpp 
-)
+# Ensure the executable can locate the data/ folder correctly
+target_include_directories(mini_search PRIVATE src)
