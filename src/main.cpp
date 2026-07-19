@@ -4,7 +4,7 @@
 #include "Tokenizer.hpp"
 #include "InvertedIndex.hpp"
 
-int main(/*int argc, char* argv[]*/) {
+int main() {
     // 1. Instantiate our Tokenizer object
     Tokenizer my_tokenizer;
 
