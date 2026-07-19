@@ -12,8 +12,8 @@ using namespace std;
 vector<string> process(string query) {
     //tokenize query into buzzwords
     Tokenizer myTokenizer;
-    vector<string> tokenized_words = myTokenizer.tokenize(query);
+    vector<string> query_terms = myTokenizer.tokenize(query);
 
-    
+
 
 }
