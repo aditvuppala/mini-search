@@ -3,3 +3,19 @@ cmake -S . -B build
 
 Everyday compilation and running loop:
 cmake --build build && ./build/mini_search
+
+Project Description:
+
+MiniSearch — Search Engine
+
+Build a miniature search engine that crawls websites or documents, 
+processes and indexes their contents, and allows users to search them 
+through a custom ranking algorithm. The project consists of a web crawler, 
+a document processing pipeline, an inverted index for fast retrieval, a ranking 
+system (such as TF-IDF), a backend search API, and a simple frontend interface. 
+Rather than focusing on AI, the emphasis is on information retrieval, data structures, 
+algorithms, backend engineering, and performance. This project demonstrates strong 
+computer science fundamentals while showcasing your ability to design and implement 
+a complete software system, making it an excellent fit for both software engineering 
+and systems-oriented internships.
+
