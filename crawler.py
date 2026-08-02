@@ -38,18 +38,18 @@ class MiniCrawler:
                 print(f"[{len(self.visited) + 1}/{self.max_pages}] Crawling: {url}")
                 response = requests.get(url, timeout=5, headers={"User-Agent": "MiniSearchCrawler/1.0"})
                 
-                # Only process HTML pages
+                # Only process HTML
                 if "text/html" not in response.headers.get("Content-Type", ""):
                     continue
 
                 self.visited.add(url)
                 soup = BeautifulSoup(response.text, "html.parser")
 
-                # Extract Title & Content
+                # Extract title & content
                 title = soup.title.string.strip() if soup.title and soup.title.string else url
                 clean_content = self.clean_text(soup)
 
-                # Store scraped page object
+                # store scraped page object
                 self.documents.append({
                     "doc_id": doc_id,
                     "url": url,
@@ -69,7 +69,6 @@ class MiniCrawler:
                         if full_url not in self.visited and full_url not in queue:
                             queue.append(full_url)
 
-                # Be polite to the target server!
                 time.sleep(0.5)
 
             except Exception as e:
