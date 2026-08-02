@@ -22,6 +22,10 @@ public:
     // Getter to look up a word's postings directly
     const std::vector<Posting>* get_postings(const std::string& word) const;
 
+    int get_total_docs() const {
+        return total_docs;
+    }
+
 private:
     std::unordered_map<std::string, std::vector<Posting>> index;
     int total_docs = 0; 
