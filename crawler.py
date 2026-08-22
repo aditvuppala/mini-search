@@ -36,9 +36,12 @@ class MiniCrawler:
         return self.rp.can_fetch(self.user_agent, url)
 
     def clean_text(self, soup):
-        """Removes markup boilerplate (scripts, navbars, styles) and extracts clean plain text."""
-        for element in soup(["script", "style", "nav", "footer", "header"]):
+        # Strip scripts, styles, navigation bars, footers, and sidebar categories
+        for element in soup(["script", "style", "nav", "footer", "header", "aside"]):
             element.extract()
+            
+        for sidebar in soup.find_all("div", class_="side_categories"):
+            sidebar.extract()
 
         text = soup.get_text(separator=' ')
         return re.sub(r'\s+', ' ', text).strip()
@@ -114,5 +117,5 @@ class MiniCrawler:
 
 
 if __name__ == "__main__":
-    crawler = MiniCrawler(seed_url="https://books.toscrape.com/", max_pages=5)
+    crawler = MiniCrawler(seed_url="https://books.toscrape.com/", max_pages=30)
     crawler.crawl()

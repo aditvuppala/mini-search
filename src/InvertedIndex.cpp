@@ -1,44 +1,35 @@
-#include <string>
-#include <vector>
-#include <unordered_map>
-#include <iostream>
 #include "InvertedIndex.hpp"
+#include <iostream>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
-
-// Ingests a tokenized document into the index database
-void InvertedIndex::add_document(int doc_id, const std::vector<std::string>& tokens) {
+// Updated add_document to store docInfo metadata
+void InvertedIndex::add_document(int doc_id, const std::string& title, const std::string& url, const std::vector<std::string>& tokens) {
     ++total_docs;
-    for(const std::string &word : tokens) { 
+    doc_metadata[doc_id] = docInfo{title, url};
 
+    for(const std::string &word : tokens) { 
         auto it = index.find(word);
 
-        //if word doesnt already exist in index
         if(it == index.end()) {
             std::vector<Posting> add_to_index;
             add_to_index.push_back(Posting{doc_id, 1});
             index.insert({word, add_to_index});
         }
-        //if word already exists in index
         else {
-            //current word posting vector
             std::vector<Posting> &current_vector = it->second;
 
-            //if this document already exists in the index for this word:
-            if(!current_vector.empty() && current_vector.back().doc_id==doc_id) {
+            if(!current_vector.empty() && current_vector.back().doc_id == doc_id) {
                 current_vector.back().term_frequency++;
             }
-            //word exists in index but nto for this specific document
             else {
                 current_vector.push_back(Posting{doc_id, 1});
             }
-
         }
-
     }
-
 }
 
-// Helper to print out the database layout to the terminal (great for testing)
 void InvertedIndex::print_index() const {
     for(auto it = index.begin(); it != index.end(); ++it) {
         const std::vector<Posting> &posting_vector = it->second;
@@ -50,21 +41,23 @@ void InvertedIndex::print_index() const {
     }
 }   
 
-// Getter to look up a word's postings directly
+// Safe look-up to prevent segfaults on missing words
 const std::vector<Posting>* InvertedIndex::get_postings(const std::string& word) const {
     auto it = index.find(word);
-
-    return &it->second;
+    if (it != index.end()) {
+        return &it->second;
+    }
+    return nullptr; // Returns nullptr safely if word not found
 }
 
 int InvertedIndex::get_total_docs() const {
-        return total_docs;
-    }
+    return total_docs;
+}
 
 docInfo InvertedIndex::get_doc_info(int doc_id) const {
     auto it = doc_metadata.find(doc_id);
     if (it != doc_metadata.end()) {
-        return doc_metadata.at(doc_id);
+        return it->second;
     }
     return {"Unknown Document", "Unknown URL"};
 }

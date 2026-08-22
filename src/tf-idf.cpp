@@ -3,6 +3,8 @@
 #include <cmath>
 #include <algorithm>
 
+namespace TFIDF {
+
 std::vector<SearchResult> rank_documents(const std::unordered_map<std::string, std::vector<Posting>>& query_stats, int total_documents) {
     //keeping track of doc_id --> doc_score
     std::unordered_map<int, double> doc_scores;
@@ -13,7 +15,7 @@ std::vector<SearchResult> rank_documents(const std::unordered_map<std::string, s
         if (postings.empty()) continue;
 
         //calculate idf score 
-        double idf = std::log(static_cast<double>(total_documents / postings.size()));
+        double idf = std::log(1.0 + (static_cast<double>(total_documents) / postings.size()));
 
         //loop through every posting for this word 
         for (const auto& posting : postings) {
@@ -38,5 +40,6 @@ std::vector<SearchResult> rank_documents(const std::unordered_map<std::string, s
 
 
     return result;
+}
 }
 

@@ -8,4 +8,5 @@ struct SearchResult {
     double score; 
 };
 
-std::vector<SearchResult> rank_documents(const std::unordered_map<std::string, std::vector<Posting>>& query_stats, int total_documents);
+namespace TFIDF {
+std::vector<SearchResult> rank_documents(const std::unordered_map<std::string, std::vector<Posting>>& query_stats, int total_documents); }

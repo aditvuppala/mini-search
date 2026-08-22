@@ -1,17 +1,14 @@
-#ifndef INVERTED_INDEX_HPP
-#define INVERTED_INDEX_HPP
+#pragma once
 
 #include <string>
 #include <vector>
 #include <unordered_map>
 
-// Represents a word's presence inside a specific document
 struct Posting {
     int doc_id;
-    int term_frequency; 
+    int term_frequency;
 };
 
-//keep track of urls
 struct docInfo {
     std::string title;
     std::string url;
@@ -19,23 +16,14 @@ struct docInfo {
 
 class InvertedIndex {
 public:
-    // Ingests a tokenized document into the index database
-    void add_document(int doc_id, const std::vector<std::string>& tokens);
-
-    // Helper to print out the database layout to the terminal (great for testing)
+    void add_document(int doc_id, const std::string& title, const std::string& url, const std::vector<std::string>& tokens);
     void print_index() const;
-
-    // Getter to look up a word's postings directly
     const std::vector<Posting>* get_postings(const std::string& word) const;
-
     int get_total_docs() const;
-
     docInfo get_doc_info(int doc_id) const;
 
 private:
+    int total_docs = 0;
     std::unordered_map<std::string, std::vector<Posting>> index;
-    int total_docs = 0; 
     std::unordered_map<int, docInfo> doc_metadata;
 };
-
-#endif // INVERTED_INDEX_HPP
