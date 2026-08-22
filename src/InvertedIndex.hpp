@@ -11,6 +11,12 @@ struct Posting {
     int term_frequency; 
 };
 
+//keep track of urls
+struct docInfo {
+    std::string title;
+    std::string url;
+};
+
 class InvertedIndex {
 public:
     // Ingests a tokenized document into the index database
@@ -22,13 +28,14 @@ public:
     // Getter to look up a word's postings directly
     const std::vector<Posting>* get_postings(const std::string& word) const;
 
-    int get_total_docs() const {
-        return total_docs;
-    }
+    int get_total_docs() const;
+
+    docInfo get_doc_info(int doc_id) const;
 
 private:
     std::unordered_map<std::string, std::vector<Posting>> index;
     int total_docs = 0; 
+    std::unordered_map<int, docInfo> doc_metadata;
 };
 
 #endif // INVERTED_INDEX_HPP

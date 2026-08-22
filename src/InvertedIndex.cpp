@@ -56,3 +56,15 @@ const std::vector<Posting>* InvertedIndex::get_postings(const std::string& word)
 
     return &it->second;
 }
+
+int InvertedIndex::get_total_docs() const {
+        return total_docs;
+    }
+
+docInfo InvertedIndex::get_doc_info(int doc_id) const {
+    auto it = doc_metadata.find(doc_id);
+    if (it != doc_metadata.end()) {
+        return doc_metadata.at(doc_id);
+    }
+    return {"Unknown Document", "Unknown URL"};
+}
