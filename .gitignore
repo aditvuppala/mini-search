@@ -9,3 +9,4 @@ Thumbs.db
 venv/
 __pycache__/
 *.pyc
+scraped_pages.json
