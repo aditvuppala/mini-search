@@ -5,18 +5,19 @@ import urllib.robotparser
 from urllib.parse import urljoin, urlparse
 import requests
 from bs4 import BeautifulSoup
+import concurrent.futures
+
 
 
 class MiniCrawler:
-    def __init__(self, seed_url, max_pages=10):
+    def __init__(self, seed_url, max_pages=300, max_workers = 8):
         self.seed_url = seed_url
         self.max_pages = max_pages
+        self.max_workers = max_workers
         self.visited = set()
         self.documents = []
         self.allowed_domain = urlparse(seed_url).netloc
         self.user_agent = "MiniSearchCrawler/1.0"
-
-        # 1. Initialize and load robots.txt parser
         self.rp = urllib.robotparser.RobotFileParser()
         self._load_robots_txt()
 
@@ -46,70 +47,58 @@ class MiniCrawler:
         text = soup.get_text(separator=' ')
         return re.sub(r'\s+', ' ', text).strip()
 
+    def fetch_page(self, url):
+        if not self.can_fetch(url):
+            return None, []
+        try:
+            resp = requests.get(url, timeout=5, headers={"User-Agent": self.user_agent})
+            if "text/html" not in resp.headers.get("Content-Type", ""):
+                return None, []
+
+            soup = BeautifulSoup(resp.text, "html.parser")
+            title = soup.title.string.strip() if soup.title and soup.title.string else url
+            clean_content = self.clean_text(soup)
+
+            links = []
+            for link in soup.find_all("a", href=True):
+                full_url = urljoin(url, link["href"]).split('#')[0]
+                if urlparse(full_url).netloc == self.allowed_domain and full_url.startswith("http"):
+                    links.append(full_url)
+
+            return {"url": url, "title": title, "content": clean_content}, links
+        except Exception:
+            return None, []
+
     def crawl(self):
-        """Executes a Breadth-First Search (BFS) crawl up to max_pages."""
         queue = [self.seed_url]
+        self.visited.add(self.seed_url)
         doc_id = 0
 
         print(f"\n🚀 Starting crawl at: {self.seed_url} (Limit: {self.max_pages} pages)")
 
-        while queue and len(self.visited) < self.max_pages:
-            url = queue.pop(0)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+            while queue and len(self.documents) < self.max_pages:
+                # Take up to max_workers URLs from the queue
+                batch = queue[:self.max_workers]
+                queue = queue[self.max_workers:]
 
-            # Skip if already visited
-            if url in self.visited:
-                continue
+                # Fetch the batch concurrently
+                futures = {executor.submit(self.fetch_page, url): url for url in batch}
 
-            # Respect robots.txt exclusions
-            if not self.can_fetch(url):
-                print(f"🚫 [Robots.txt Block] Skipping: {url}")
-                continue
+                for future in concurrent.futures.as_completed(futures):
+                    doc, links = future.result()
+                    if doc and len(self.documents) < self.max_pages:
+                        doc["doc_id"] = doc_id
+                        self.documents.append(doc)
+                        doc_id += 1
+                        print(f"[{len(self.documents)}/{self.max_pages}] Crawling: {doc['url']}")
 
-            try:
-                print(f"[{len(self.visited) + 1}/{self.max_pages}] Crawling: {url}")
-                response = requests.get(
-                    url,
-                    timeout=5,
-                    headers={"User-Agent": self.user_agent}
-                )
+                    for link in links:
+                        if link not in self.visited:
+                            self.visited.add(link)
+                            queue.append(link)
 
-                # Skip non-HTML responses (e.g. PDFs, binary downloads, images)
-                content_type = response.headers.get("Content-Type", "")
-                if "text/html" not in content_type:
-                    continue
-
-                self.visited.add(url)
-                soup = BeautifulSoup(response.text, "html.parser")
-
-                # Extract page title & cleaned text body
-                title = soup.title.string.strip() if soup.title and soup.title.string else url
-                clean_content = self.clean_text(soup)
-
-                # Store document for inverted index indexing
-                self.documents.append({
-                    "doc_id": doc_id,
-                    "url": url,
-                    "title": title,
-                    "content": clean_content
-                })
-                doc_id += 1
-
-                # Discover and queue internal hyperlinks
-                for link in soup.find_all("a", href=True):
-                    full_url = urljoin(url, link["href"]).split('#')[0]
-
-                    # Stay within target domain and enforce HTTP/HTTPS
-                    if urlparse(full_url).netloc == self.allowed_domain and full_url.startswith("http"):
-                        if full_url not in self.visited and full_url not in queue:
-                            queue.append(full_url)
-
-                # Politeness delay to prevent rate-limiting/server load
-                time.sleep(0.5)
-
-            except Exception as e:
-                print(f"⚠️ Failed to crawl {url}: {e}")
-
-        # Save indexed documents to JSON
+        # Save result to JSON file for C++ to read
         with open("scraped_pages.json", "w", encoding="utf-8") as f:
             json.dump(self.documents, f, indent=2, ensure_ascii=False)
 
@@ -117,5 +106,5 @@ class MiniCrawler:
 
 
 if __name__ == "__main__":
-    crawler = MiniCrawler(seed_url="https://books.toscrape.com/", max_pages=30)
+    crawler = MiniCrawler(seed_url="https://books.toscrape.com/", max_pages=300, max_workers=10)
     crawler.crawl()

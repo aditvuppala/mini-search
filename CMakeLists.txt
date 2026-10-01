@@ -21,3 +21,12 @@ endif()
 
 # Ensure the executable can locate the data/ folder correctly
 target_include_directories(mini_search PRIVATE src)
+
+add_executable(benchmark
+    benchmark.cpp
+    src/InvertedIndex.cpp
+    src/QueryProcessor.cpp
+    src/Tokenizer.cpp
+    src/tf-idf.cpp
+)
+target_include_directories(benchmark PRIVATE include)
